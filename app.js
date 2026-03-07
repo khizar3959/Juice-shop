@@ -475,23 +475,44 @@ function addNewJuice() {
 let deferredPrompt;
 
 function setupPWA() {
+    // Check if device is iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    // Check if the app is already installed/running in standalone
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+
+    const deskBtnWrap = document.getElementById('installAppContainerDesktop');
+    const mobBtn = document.getElementById('installAppBtnMobile');
+    const iosModal = document.getElementById('iosInstallModal');
+
+    if (isIOS && !isStandalone) {
+        // Show iOS install button since Apple doesn't support 'beforeinstallprompt'
+        if (mobBtn) {
+            mobBtn.classList.remove('hidden');
+            mobBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (iosModal) iosModal.classList.remove('hidden');
+            });
+        }
+        return; // iOS handled
+    }
+
+    // Android / Desktop standard PWA flow
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        const deskBtn = document.getElementById('installAppContainerDesktop');
-        if (deskBtn) deskBtn.classList.remove('hidden');
-        const mobBtn = document.getElementById('installAppBtnMobile');
+        if (deskBtnWrap) deskBtnWrap.classList.remove('hidden');
         if (mobBtn) mobBtn.classList.remove('hidden');
     });
 
-    const installHandler = async () => {
+    const installHandler = async (e) => {
+        e.preventDefault();
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
                 deferredPrompt = null;
-                document.getElementById('installAppContainerDesktop').classList.add('hidden');
-                document.getElementById('installAppBtnMobile').classList.add('hidden');
+                if (deskBtnWrap) deskBtnWrap.classList.add('hidden');
+                if (mobBtn) mobBtn.classList.add('hidden');
             }
         }
     };
@@ -499,8 +520,7 @@ function setupPWA() {
     const deskBtn = document.getElementById('installAppBtnDesktop');
     if (deskBtn) deskBtn.addEventListener('click', installHandler);
 
-    const mobBtn = document.getElementById('installAppBtnMobile');
-    if (mobBtn) mobBtn.addEventListener('click', installHandler);
+    if (mobBtn && !isIOS) mobBtn.addEventListener('click', installHandler);
 }
 
 // Boot
