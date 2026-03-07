@@ -1,18 +1,17 @@
-// State structure
 const DEFAULT_INVENTORY = {
-    Mango: { qty: 200, max: 200, unit: 'units' },
-    Apple: { qty: 150, max: 150, unit: 'units' },
-    Orange: { qty: 180, max: 200, unit: 'units' },
-    Sugar: { qty: 5000, max: 5000, unit: 'g' },
-    Cups: { qty: 100, max: 500, unit: 'pcs' },
+    Mango: { qty: 200, max: 200, unit: 'units', isFlavor: true, priceSmall: 300, priceLarge: 450 },
+    Apple: { qty: 150, max: 150, unit: 'units', isFlavor: true, priceSmall: 350, priceLarge: 500 },
+    Orange: { qty: 180, max: 200, unit: 'units', isFlavor: true, priceSmall: 250, priceLarge: 400 },
+    Sugar: { qty: 5000, max: 5000, unit: 'g', isFlavor: false },
+    Cups: { qty: 100, max: 500, unit: 'pcs', isFlavor: false },
 };
 
-// Prices to calculate sales
-const PRICES = { Small: 4.00, Large: 6.50 };
+const DEFAULT_PRICES = { Small: 300, Large: 450 };
 
 let state = {
     orders: [],
     inventory: JSON.parse(JSON.stringify(DEFAULT_INVENTORY)),
+    prices: JSON.parse(JSON.stringify(DEFAULT_PRICES)),
     filter: 'all' // all, pending, done
 };
 
@@ -30,9 +29,27 @@ function loadData() {
     const saved = localStorage.getItem('juiceDashState');
     if (saved) {
         state = JSON.parse(saved);
-        // Fallback for new inventory items if changed later
+        // Fallbacks
         for (let item in DEFAULT_INVENTORY) {
             if (!state.inventory[item]) state.inventory[item] = { ...DEFAULT_INVENTORY[item] };
+        }
+        if (!state.prices) {
+            state.prices = { ...DEFAULT_PRICES };
+        }
+        // Initialize isFlavor for old data compatibility
+        for (let key in state.inventory) {
+            if (state.inventory[key].isFlavor === undefined) {
+                if (key === 'Mango' || key === 'Apple' || key === 'Orange') {
+                    state.inventory[key].isFlavor = true;
+                    state.inventory[key].priceSmall = state.prices?.Small || 300;
+                    state.inventory[key].priceLarge = state.prices?.Large || 450;
+                } else {
+                    state.inventory[key].isFlavor = false;
+                }
+            } else if (state.inventory[key].isFlavor && state.inventory[key].priceSmall === undefined) {
+                state.inventory[key].priceSmall = state.prices?.Small || 300;
+                state.inventory[key].priceLarge = state.prices?.Large || 450;
+            }
         }
     }
 }
@@ -43,12 +60,9 @@ function saveData() {
 
 // Navigation
 function navigate(targetId) {
-    // Hide all
     document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
-    // Show target
     document.getElementById(targetId).classList.add('active');
 
-    // Update active nav buttons desktop
     document.querySelectorAll('.nav-btn').forEach(btn => {
         if (btn.dataset.target === targetId) {
             btn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-juice-orange bg-orange-50";
@@ -57,7 +71,6 @@ function navigate(targetId) {
         }
     });
 
-    // Update active nav buttons mobile
     document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
         if (btn.dataset.target === targetId) {
             btn.className = "nav-btn-mobile flex flex-col items-center p-2 text-juice-orange";
@@ -65,20 +78,21 @@ function navigate(targetId) {
             btn.className = "nav-btn-mobile flex flex-col items-center p-2 text-gray-400 hover:text-juice-orange transition-colors";
         }
     });
+
+    if (targetId === 'settings') {
+        renderSettings();
+    }
 }
 
-// Setup Modals and Filters
+// Filters
 document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-        // Reset styles
         document.querySelectorAll('.filter-btn').forEach(b => {
             b.classList.remove('bg-gray-900', 'text-white');
             b.classList.add('bg-gray-100', 'text-gray-600');
         });
-        // Set active style
         e.target.classList.remove('bg-gray-100', 'text-gray-600');
         e.target.classList.add('bg-gray-900', 'text-white');
-
         state.filter = e.target.dataset.filter;
         renderOrders();
     });
@@ -91,29 +105,27 @@ function renderAll() {
     renderInventory();
     renderAnalytics();
     renderFlavorPicker();
+    renderSettings();
 }
 
-// 1. Dashboard Stats
 function renderStats() {
     const today = new Date().toDateString();
 
-    // Sales today
+    // Calculate using dynamic state prices instead of global PRICES
     const sales = state.orders
         .filter(o => new Date(o.date).toDateString() === today && o.status === 'done')
-        .reduce((sum, o) => sum + PRICES[o.size], 0);
+        .reduce((sum, o) => sum + (o.price || 0), 0);
 
-    document.getElementById('statSales').textContent = `$${sales.toFixed(2)}`;
+    document.getElementById('statSales').textContent = `Rs ${sales.toLocaleString()}`;
 
-    // Active orders
     const active = state.orders.filter(o => o.status === 'pending').length;
     document.getElementById('statOrders').textContent = active;
 
-    // Low stock
     let lowStockCount = 0;
     for (let key in state.inventory) {
         const item = state.inventory[key];
         const ratio = item.qty / item.max;
-        if (ratio <= 0.25) lowStockCount++; // warning threshold at 25%
+        if (ratio <= 0.25) lowStockCount++;
     }
 
     document.getElementById('statStock').textContent = `${lowStockCount} Item${lowStockCount !== 1 ? 's' : ''}`;
@@ -127,15 +139,21 @@ function renderStats() {
     }
 }
 
-// 2. Add Order Logic
+function getFlavorsList() {
+    return Object.keys(state.inventory).filter(k => state.inventory[k].isFlavor);
+}
+
 function renderFlavorPicker() {
-    const flavors = ['Mango', 'Apple', 'Orange'];
+    const flavors = getFlavorsList();
+    if (flavors.length > 0 && !flavors.includes(selectedFlavor)) selectedFlavor = flavors[0];
+
     const container = document.getElementById('flavorSelect');
     container.innerHTML = flavors.map(f => `
         <label class="cursor-pointer" onclick="selectedFlavor='${f}'">
             <input type="radio" name="flavor" value="${f}" class="peer sr-only" ${f === selectedFlavor ? 'checked' : ''}>
-            <div class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition text-sm">
-                ${f}
+            <div class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition text-sm flex flex-col items-center">
+                <span>${f}</span>
+                <span class="text-[10px] text-gray-500 font-bold">Rs ${state.inventory[f].priceSmall} / Rs ${state.inventory[f].priceLarge}</span>
             </div>
         </label>
     `).join('');
@@ -146,14 +164,20 @@ function submitOrder() {
     const sugar = document.querySelector('input[name="sugar"]:checked').value;
     const flavor = selectedFlavor;
 
+    if (!flavor) return alert("Please select a flavor!");
+
     if (state.inventory[flavor]) {
         state.inventory[flavor].qty = Math.max(0, state.inventory[flavor].qty - (size === 'Large' ? 2 : 1));
     }
-    state.inventory.Cups.qty = Math.max(0, state.inventory.Cups.qty - 1);
+    if (state.inventory.Cups) {
+        state.inventory.Cups.qty = Math.max(0, state.inventory.Cups.qty - 1);
+    }
 
-    if (sugar === 'Yes') {
+    if (sugar === 'Yes' && state.inventory.Sugar) {
         state.inventory.Sugar.qty = Math.max(0, state.inventory.Sugar.qty - (size === 'Large' ? 20 : 10));
     }
+
+    const total = size === 'Small' ? state.inventory[flavor].priceSmall : state.inventory[flavor].priceLarge;
 
     const newOrder = {
         id: Date.now(),
@@ -161,12 +185,11 @@ function submitOrder() {
         size,
         sugar,
         status: 'pending',
+        price: total,
         date: new Date().toISOString()
     };
 
-    // Add to top
     state.orders.unshift(newOrder);
-
     document.getElementById('addOrderModal').classList.add('hidden');
     saveData();
     renderAll();
@@ -181,7 +204,6 @@ function toggleOrderStatus(id) {
     }
 }
 
-// 3. Render Orders
 function renderOrders() {
     const list = document.getElementById('ordersList');
     const recentList = document.getElementById('recentOrdersList');
@@ -229,19 +251,22 @@ function createOrderHTML(o, showActions) {
                 </div>
                 ${showActions ? `
                 <div class="flex items-center gap-2">
+                    <span class="font-bold text-gray-800 hidden sm:block">Rs ${o.price || 0}</span>
                     <button onclick="toggleOrderStatus(${o.id})" class="p-2 rounded-xl border ${isDone ? 'border-gray-200 text-gray-400 hover:text-gray-600' : 'border-green-200 bg-green-50 text-juice-green hover:bg-green-100'} transition" title="Toggle Status">
                         <i class="ph-bold ph-check text-lg"></i>
                     </button>
                 </div>
                 ` : `
-                <button onclick="toggleOrderStatus(${o.id})" class="text-juice-green bg-green-50 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-green-100 transition whitespace-nowrap"><i class="ph-bold ph-check"></i> Done</button>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-gray-800">Rs ${o.price || 0}</span>
+                    <button onclick="toggleOrderStatus(${o.id})" class="text-juice-green bg-green-50 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-green-100 transition whitespace-nowrap"><i class="ph-bold ph-check"></i> Done</button>
+                </div>
                 `}
             </div>
         </li>
     `;
 }
 
-// 4. Inventory List
 function renderInventory() {
     const tbody = document.getElementById('inventoryTable');
 
@@ -263,7 +288,10 @@ function renderInventory() {
         return `
             <tr class="hover:bg-gray-50 border-b border-gray-50 last:border-0 transition">
                 <td class="p-4">
-                    <div class="font-bold text-gray-800">${key}</div>
+                    <div class="font-bold text-gray-800 flex items-center gap-2">
+                        ${key}
+                        ${item.isFlavor ? '<span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] uppercase font-bold rounded">Flavor</span>' : ''}
+                    </div>
                 </td>
                 <td class="p-4 w-1/3 min-w-[150px]">
                     <div class="flex items-center justify-between mb-1 text-xs font-medium text-gray-500">
@@ -292,10 +320,16 @@ function restockItem(key) {
         state.inventory[key].qty = state.inventory[key].max;
         saveData();
         renderAll();
+
+        // Custom visual toast for restocked item
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-xl fade-in z-[200] flex items-center gap-2';
+        toast.innerHTML = `<i class="ph-fill ph-check-circle text-juice-green text-lg"></i> ${key} restocked!`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
     }
 }
 
-// 5. Analytics
 function renderAnalytics() {
     const container = document.getElementById('analyticsChart');
     const today = new Date().toDateString();
@@ -332,6 +366,111 @@ function renderAnalytics() {
     }).join('');
 }
 
+// Settings Handlers
+function renderSettings() {
+    const pContainer = document.getElementById('settingsPrices');
+    if (pContainer) {
+        pContainer.innerHTML = '<div class="text-sm text-gray-500 mb-2">Global Prices are disabled. Prices are now set per flavor below.</div>';
+    }
+
+    const jContainer = document.getElementById('settingsJuices');
+    if (jContainer) {
+        jContainer.innerHTML = Object.keys(state.inventory).map(key => {
+            const item = state.inventory[key];
+            const priceInputs = item.isFlavor ? `
+                <div class="flex gap-2 mt-2 pt-2 border-t border-gray-100">
+                    <div class="flex-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Sm Price (Rs)</label>
+                        <input type="number" step="10" onchange="updateJuiceProp('${key}', 'priceSmall', this.value)" value="${item.priceSmall || 0}" class="w-full bg-white border border-gray-200 rounded py-1 px-2 text-sm outline-none mt-1">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Lg Price (Rs)</label>
+                        <input type="number" step="10" onchange="updateJuiceProp('${key}', 'priceLarge', this.value)" value="${item.priceLarge || 0}" class="w-full bg-white border border-gray-200 rounded py-1 px-2 text-sm outline-none mt-1">
+                    </div>
+                </div>
+            ` : '';
+            return `
+                <div class="p-4 border border-gray-100 rounded-xl bg-gray-50 flex items-start gap-3">
+                    <div class="flex-1">
+                        <div class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                           ${key} 
+                           ${item.isFlavor ? '<span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] uppercase font-bold rounded">Flavor</span>' : '<span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-[10px] uppercase font-bold rounded">Supply</span>'}
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Max Stock</label>
+                                <input type="number" onchange="updateJuiceProp('${key}', 'max', this.value)" value="${item.max}" class="w-full bg-white border border-gray-200 rounded py-1 px-2 text-sm outline-none mt-1">
+                            </div>
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Unit</label>
+                                <input type="text" onchange="updateJuiceProp('${key}', 'unit', this.value)" value="${item.unit}" class="w-full bg-white border border-gray-200 rounded py-1 px-2 text-sm outline-none mt-1">
+                            </div>
+                        </div>
+                        ${priceInputs}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+function updateJuiceProp(key, prop, value) {
+    if (state.inventory[key]) {
+        if (prop === 'max') {
+            state.inventory[key][prop] = parseInt(value, 10) || 0;
+            // Prevent qty > max
+            if (state.inventory[key].qty > state.inventory[key].max) {
+                state.inventory[key].qty = state.inventory[key].max;
+            }
+        } else if (prop === 'priceSmall' || prop === 'priceLarge') {
+            state.inventory[key][prop] = parseFloat(value) || 0;
+        } else {
+            state.inventory[key][prop] = value;
+        }
+        saveData();
+        renderAll();
+    }
+}
+
+function saveSettings() {
+    for (let size in state.prices) {
+        const input = document.getElementById('price_' + size);
+        if (input) {
+            state.prices[size] = parseFloat(input.value) || 0;
+        }
+    }
+    saveData();
+    renderAll();
+
+    const btn = document.querySelector('#settings button');
+    btn.innerHTML = "Saved!";
+    setTimeout(() => btn.innerHTML = "Save Prices", 1000);
+}
+
+function addNewJuice() {
+    const defaultName = prompt("Enter new juice flavor name (e.g. Pineapple):");
+    if (defaultName && defaultName.trim() !== '') {
+        const name = defaultName.trim();
+        if (state.inventory[name]) {
+            alert("This item already exists!");
+            return;
+        }
+        const initialMax = parseInt(prompt("Enter Maximum Stock level (e.g. 150):"), 10) || 100;
+
+        state.inventory[name] = {
+            qty: initialMax,
+            max: initialMax,
+            unit: 'units',
+            isFlavor: true,
+            priceSmall: 300,
+            priceLarge: 450
+        };
+
+        saveData();
+        renderAll();
+    }
+}
+
 // PWA Install Prompt
 let deferredPrompt;
 
@@ -357,8 +496,11 @@ function setupPWA() {
         }
     };
 
-    document.getElementById('installAppBtnDesktop').addEventListener('click', installHandler);
-    document.getElementById('installAppBtnMobile').addEventListener('click', installHandler);
+    const deskBtn = document.getElementById('installAppBtnDesktop');
+    if (deskBtn) deskBtn.addEventListener('click', installHandler);
+
+    const mobBtn = document.getElementById('installAppBtnMobile');
+    if (mobBtn) mobBtn.addEventListener('click', installHandler);
 }
 
 // Boot

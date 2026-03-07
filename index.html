@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -27,17 +28,49 @@
     </script>
     <style>
         /* Custom scrollbar and animations */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Hide sections */
-        .page-section { display: none; }
-        .page-section.active { display: block; animation: fadeIn 0.4s ease forwards; }
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease forwards;
+        }
     </style>
 </head>
-<body class="bg-juice-light text-juice-dark font-sans antialiased flex h-screen overflow-hidden selection:bg-juice-orange selection:text-white">
+
+<body
+    class="bg-juice-light text-juice-dark font-sans antialiased flex h-screen overflow-hidden selection:bg-juice-orange selection:text-white">
 
     <!-- Sidebar (Desktop) -->
     <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-full p-5 shadow-sm">
@@ -45,21 +78,33 @@
             <i class="ph-fill ph-drop text-4xl"></i>
             <h1 class="text-2xl font-bold tracking-tight text-gray-900">JuiceDash</h1>
         </div>
-        
+
         <nav class="flex-1 space-y-2">
-            <button onclick="navigate('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-juice-orange bg-orange-50" data-target="dashboard">
+            <button onclick="navigate('dashboard')"
+                class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-juice-orange bg-orange-50"
+                data-target="dashboard">
                 <i class="ph ph-squares-four text-xl"></i> Dashboard
             </button>
-            <button onclick="navigate('orders')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-gray-500 hover:text-juice-orange hover:bg-orange-50/50" data-target="orders">
+            <button onclick="navigate('orders')"
+                class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-gray-500 hover:text-juice-orange hover:bg-orange-50/50"
+                data-target="orders">
                 <i class="ph ph-receipt text-xl"></i> Orders
             </button>
-            <button onclick="navigate('inventory')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-gray-500 hover:text-juice-orange hover:bg-orange-50/50" data-target="inventory">
+            <button onclick="navigate('inventory')"
+                class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-gray-500 hover:text-juice-orange hover:bg-orange-50/50"
+                data-target="inventory">
                 <i class="ph ph-packages text-xl"></i> Inventory
+            </button>
+            <button onclick="navigate('settings')"
+                class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-gray-500 hover:text-juice-orange hover:bg-orange-50/50"
+                data-target="settings">
+                <i class="ph ph-gear text-xl"></i> Settings
             </button>
         </nav>
 
         <div id="installAppContainerDesktop" class="hidden pb-4">
-            <button id="installAppBtnDesktop" class="w-full flex items-center justify-center gap-2 bg-juice-green text-white px-4 py-3 rounded-xl font-semibold hover:bg-green-600 transition shadow-sm">
+            <button id="installAppBtnDesktop"
+                class="w-full flex items-center justify-center gap-2 bg-juice-green text-white px-4 py-3 rounded-xl font-semibold hover:bg-green-600 transition shadow-sm">
                 <i class="ph ph-download-simple text-xl"></i> Install App
             </button>
         </div>
@@ -73,13 +118,14 @@
                 <i class="ph-fill ph-drop text-3xl"></i>
                 <h1 class="text-xl font-bold text-gray-900">JuiceDash</h1>
             </div>
-            <button id="installAppBtnMobile" class="hidden text-white bg-juice-green px-3 py-1.5 rounded-lg text-sm font-semibold shadow flex items-center gap-1">
-                 <i class="ph ph-download-simple"></i> Install
+            <button id="installAppBtnMobile"
+                class="hidden text-white bg-juice-green px-3 py-1.5 rounded-lg text-sm font-semibold shadow flex items-center gap-1">
+                <i class="ph ph-download-simple"></i> Install
             </button>
         </header>
 
         <div class="p-5 md:p-8 max-w-5xl mx-auto w-full">
-            
+
             <!-- Dashboard Section -->
             <section id="dashboard" class="page-section active">
                 <h2 class="text-2xl font-bold mb-6 text-gray-800">Overview</h2>
@@ -87,17 +133,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
                     <!-- Today's Sales -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-juice-green">
-                            <i class="ph-fill ph-currency-dollar text-2xl"></i>
+                        <div
+                            class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-juice-green">
+                            <i class="ph-fill ph-money text-2xl"></i>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Today's Sales</p>
-                            <h3 id="statSales" class="text-2xl font-bold">$0.00</h3>
+                            <h3 id="statSales" class="text-2xl font-bold">Rs 0</h3>
                         </div>
                     </div>
                     <!-- Active Orders -->
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center text-juice-orange">
+                        <div
+                            class="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center text-juice-orange">
                             <i class="ph-fill ph-cooking-pot text-2xl"></i>
                         </div>
                         <div>
@@ -132,7 +180,8 @@
                             <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
                                 <i class="ph-fill ph-clock-counter-clockwise text-juice-green"></i> Recent Pending
                             </h3>
-                            <button onclick="navigate('orders')" class="text-sm text-juice-orange font-medium hover:underline">View All</button>
+                            <button onclick="navigate('orders')"
+                                class="text-sm text-juice-orange font-medium hover:underline">View All</button>
                         </div>
                         <div id="recentOrdersList" class="space-y-3">
                             <!-- Recent orders injected here -->
@@ -145,16 +194,23 @@
             <section id="orders" class="page-section">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">Order Management</h2>
-                    <button onclick="document.getElementById('addOrderModal').classList.remove('hidden')" class="bg-juice-orange text-white px-4 py-2 rounded-xl font-semibold shadow hover:bg-orange-600 transition flex items-center gap-2 text-sm sm:text-base">
+                    <button onclick="document.getElementById('addOrderModal').classList.remove('hidden')"
+                        class="bg-juice-orange text-white px-4 py-2 rounded-xl font-semibold shadow hover:bg-orange-600 transition flex items-center gap-2 text-sm sm:text-base">
                         <i class="ph ph-plus-bold"></i> New Order
                     </button>
                 </div>
-                
+
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-4 border-b border-gray-100 flex gap-2 overflow-x-auto hide-scrollbar">
-                        <button class="filter-btn px-4 py-1.5 rounded-full bg-gray-900 text-white text-sm font-medium whitespace-nowrap" data-filter="all">All</button>
-                        <button class="filter-btn px-4 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium whitespace-nowrap" data-filter="pending">Pending</button>
-                        <button class="filter-btn px-4 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium whitespace-nowrap" data-filter="done">Done</button>
+                        <button
+                            class="filter-btn px-4 py-1.5 rounded-full bg-gray-900 text-white text-sm font-medium whitespace-nowrap"
+                            data-filter="all">All</button>
+                        <button
+                            class="filter-btn px-4 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium whitespace-nowrap"
+                            data-filter="pending">Pending</button>
+                        <button
+                            class="filter-btn px-4 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium whitespace-nowrap"
+                            data-filter="done">Done</button>
                     </div>
                     <ul id="ordersList" class="divide-y divide-gray-100">
                         <!-- Full orders list here -->
@@ -165,7 +221,7 @@
             <!-- Inventory Section -->
             <section id="inventory" class="page-section">
                 <h2 class="text-2xl font-bold mb-6 text-gray-800">Inventory Tracking</h2>
-                
+
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -185,32 +241,76 @@
                 </div>
             </section>
 
+            <!-- Settings Section -->
+            <section id="settings" class="page-section">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Settings & Admin</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                                <i class="ph-fill ph-money text-juice-green"></i> Prices
+                            </h3>
+                            <button onclick="saveSettings()"
+                                class="text-juice-orange font-bold text-sm bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100">Save
+                                Prices</button>
+                        </div>
+                        <div id="settingsPrices" class="space-y-4"></div>
+                        <p class="text-xs text-gray-500 mt-4">*Note: You must click Save Prices to apply changes.</p>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-lg mb-4 text-gray-800 flex items-center gap-2">
+                            <i class="ph-fill ph-drop text-juice-orange"></i> Manage Juices
+                        </h3>
+                        <div id="settingsJuices" class="space-y-4 max-h-[300px] overflow-y-auto pr-2"></div>
+                        <button onclick="addNewJuice()"
+                            class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 rounded-xl transition">
+                            + Add New Flavor
+                        </button>
+                    </div>
+                </div>
+            </section>
+
         </div>
     </main>
 
     <!-- Bottom Navigation (Mobile) -->
-    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex justify-around p-2 pb-safe z-50">
-        <button onclick="navigate('dashboard')" class="nav-btn-mobile flex flex-col items-center p-2 text-juice-orange" data-target="dashboard">
+    <nav
+        class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] flex justify-around p-2 pb-safe z-50">
+        <button onclick="navigate('dashboard')" class="nav-btn-mobile flex flex-col items-center p-2 text-juice-orange"
+            data-target="dashboard">
             <i class="ph-fill ph-squares-four text-2xl"></i>
             <span class="text-[10px] font-medium mt-1">Home</span>
         </button>
-        <button onclick="navigate('orders')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-400 hover:text-juice-orange transition-colors" data-target="orders">
+        <button onclick="navigate('orders')"
+            class="nav-btn-mobile flex flex-col items-center p-2 text-gray-400 hover:text-juice-orange transition-colors"
+            data-target="orders">
             <i class="ph-fill ph-receipt text-2xl"></i>
             <span class="text-[10px] font-medium mt-1">Orders</span>
         </button>
-        <button onclick="navigate('inventory')" class="nav-btn-mobile flex flex-col items-center p-2 text-gray-400 hover:text-juice-orange transition-colors" data-target="inventory">
+        <button onclick="navigate('inventory')"
+            class="nav-btn-mobile flex flex-col items-center p-2 text-gray-400 hover:text-juice-orange transition-colors"
+            data-target="inventory">
             <i class="ph-fill ph-packages text-2xl"></i>
             <span class="text-[10px] font-medium mt-1">Inventory</span>
+        </button>
+        <button onclick="navigate('settings')"
+            class="nav-btn-mobile flex flex-col items-center p-2 text-gray-400 hover:text-juice-orange transition-colors"
+            data-target="settings">
+            <i class="ph-fill ph-gear text-2xl"></i>
+            <span class="text-[10px] font-medium mt-1">Settings</span>
         </button>
     </nav>
 
     <!-- Add Order Modal -->
     <div id="addOrderModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="document.getElementById('addOrderModal').classList.add('hidden')"></div>
-        <div class="bg-white rounded-3xl w-full max-w-md shadow-xl relative z-10 overflow-hidden fade-in relative flex flex-col max-h-[90vh]">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onclick="document.getElementById('addOrderModal').classList.add('hidden')"></div>
+        <div
+            class="bg-white rounded-3xl w-full max-w-md shadow-xl relative z-10 overflow-hidden fade-in relative flex flex-col max-h-[90vh]">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                 <h3 class="text-xl font-bold text-gray-800">Add New Order</h3>
-                <button onclick="document.getElementById('addOrderModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                <button onclick="document.getElementById('addOrderModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-600">
                     <i class="ph ph-x text-xl"></i>
                 </button>
             </div>
@@ -226,11 +326,15 @@
                     <div class="flex gap-3">
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="size" value="Small" class="peer sr-only" checked>
-                            <div class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">Small</div>
+                            <div
+                                class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">
+                                Small</div>
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="size" value="Large" class="peer sr-only">
-                            <div class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">Large</div>
+                            <div
+                                class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">
+                                Large</div>
                         </label>
                     </div>
                 </div>
@@ -239,17 +343,22 @@
                     <div class="flex gap-3">
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="sugar" value="Yes" class="peer sr-only" checked>
-                            <div class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">Yes</div>
+                            <div
+                                class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">
+                                Yes</div>
                         </label>
                         <label class="flex-1 cursor-pointer">
                             <input type="radio" name="sugar" value="No" class="peer sr-only">
-                            <div class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">No</div>
+                            <div
+                                class="text-center py-2 border-2 border-gray-100 rounded-xl peer-checked:border-juice-orange peer-checked:bg-orange-50 peer-checked:text-juice-orange font-medium transition">
+                                No</div>
                         </label>
                     </div>
                 </div>
             </div>
             <div class="p-6 border-t border-gray-100 bg-gray-50/50">
-                <button onclick="submitOrder()" class="w-full bg-juice-orange hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg transition">
+                <button onclick="submitOrder()"
+                    class="w-full bg-juice-orange hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg transition">
                     Place Order
                 </button>
             </div>
@@ -267,4 +376,5 @@
         }
     </script>
 </body>
+
 </html>
