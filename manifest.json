@@ -1,0 +1,16 @@
+{
+  "name": "JuiceDash",
+  "short_name": "JuiceDash",
+  "description": "Juice Shop Inventory & Sales Dashboard",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512 any"
+    }
+  ]
+}
